@@ -36,11 +36,14 @@ sshpass -p 'g2AjLzx1drew4ozpArNe' ssh -o StrictHostKeyChecking=no $VPS_USER@$VPS
 
   pm2 delete all || true
 
+  export GOOGLE_APPLICATION_CREDENTIALS=/opt/ai_orchestrator/vertex_sa.json
+  export VERTEX_PROJECT_ID=my-project-28666-8-5-26-0-crm
+
   # Start FastAPI
-  pm2 start "/root/.local/bin/uv run uvicorn api:app --host 0.0.0.0 --port 8000" --name "ai-api" --cwd /opt/ai_orchestrator
+  pm2 start "/root/.local/bin/uv run uvicorn api:app --host 0.0.0.0 --port 8000" --name "ai-api" --cwd /opt/ai_orchestrator --update-env
   
   # Start Celery Worker
-  pm2 start "/root/.local/bin/uv run celery -A tasks worker --loglevel=info --concurrency=2" --name "ai-celery" --cwd /opt/ai_orchestrator
+  pm2 start "/root/.local/bin/uv run celery -A tasks worker --loglevel=info --concurrency=2" --name "ai-celery" --cwd /opt/ai_orchestrator --update-env
 
   pm2 save
   echo "Deployment Complete!"
