@@ -180,7 +180,7 @@ def execute_autonomous_workflow(
                 logger.info(f"Draft PR создан через gh CLI: {pr_url}")
 
         if not pr_url:
-            pr_url = f"https://github.com/orchestrator/landing-website/pull/draft-{task_id}"
+            pr_url = f"https://github.com/lamsnakesgit/project_man_orchastrator_OS/pull/draft-{task_id}"
             logger.info(f"Использован фолбэк PR URL: {pr_url}")
 
         return {
