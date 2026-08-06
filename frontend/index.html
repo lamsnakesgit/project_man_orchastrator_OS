@@ -1,0 +1,242 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <meta name="theme-color" content="#1e1e2f">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <title>AI Orchestrator</title>
+    <style>
+        :root {
+            --bg-color: #0f111a;
+            --card-bg: rgba(255, 255, 255, 0.05);
+            --card-border: rgba(255, 255, 255, 0.1);
+            --text-main: #ffffff;
+            --text-muted: #a0a5b5;
+            --accent: #6c5ce7;
+            --accent-hover: #8174e7;
+            --column-bg: rgba(20, 22, 33, 0.6);
+        }
+        
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+        }
+
+        body {
+            background-color: var(--bg-color);
+            background-image: radial-gradient(circle at top right, rgba(108, 92, 231, 0.15), transparent 40%),
+                              radial-gradient(circle at bottom left, rgba(0, 210, 211, 0.1), transparent 40%);
+            color: var(--text-main);
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+        }
+
+        header {
+            padding: 20px;
+            backdrop-filter: blur(10px);
+            -webkit-backdrop-filter: blur(10px);
+            border-bottom: 1px solid var(--card-border);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            position: sticky;
+            top: 0;
+            z-index: 100;
+        }
+
+        h1 {
+            font-size: 1.2rem;
+            font-weight: 600;
+            background: linear-gradient(90deg, #a8c0ff, #3f2b96);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        .add-task {
+            background: var(--accent);
+            color: white;
+            border: none;
+            padding: 8px 16px;
+            border-radius: 20px;
+            font-size: 0.9rem;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            box-shadow: 0 4px 15px rgba(108, 92, 231, 0.4);
+        }
+
+        .add-task:hover, .add-task:active {
+            background: var(--accent-hover);
+            transform: scale(0.98);
+        }
+
+        .board {
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+            padding: 20px;
+            flex: 1;
+            overflow-y: auto;
+        }
+
+        @media (min-width: 768px) {
+            .board {
+                flex-direction: row;
+                overflow-x: auto;
+                overflow-y: hidden;
+            }
+        }
+
+        .column {
+            background: var(--column-bg);
+            border-radius: 16px;
+            padding: 15px;
+            border: 1px solid var(--card-border);
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
+        }
+        
+        @media (min-width: 768px) {
+            .column {
+                min-width: 320px;
+                height: calc(100vh - 120px);
+                overflow-y: auto;
+            }
+        }
+
+        .column h3 {
+            font-size: 1rem;
+            font-weight: 500;
+            color: var(--text-muted);
+            margin-bottom: 5px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .task {
+            background: var(--card-bg);
+            border: 1px solid var(--card-border);
+            border-radius: 12px;
+            padding: 16px;
+            cursor: pointer;
+            transition: transform 0.2s, background 0.2s;
+        }
+
+        .task:active {
+            transform: scale(0.98);
+            background: rgba(255, 255, 255, 0.08);
+        }
+
+        .task-title {
+            font-weight: 600;
+            font-size: 0.95rem;
+            margin-bottom: 8px;
+            color: #e2e8f0;
+        }
+
+        .task-meta {
+            font-size: 0.85rem;
+            color: var(--text-muted);
+            line-height: 1.4;
+        }
+    </style>
+</head>
+<body>
+    <header>
+        <h1>AI Orchestrator</h1>
+        <button class="add-task" onclick="createTask()">+ Задача</button>
+    </header>
+
+    <div class="board">
+        <div class="column" id="col-todo">
+            <h3>🔴 В очереди</h3>
+        </div>
+        <div class="column" id="col-inprogress">
+            <h3>🟡 В процессе</h3>
+        </div>
+        <div class="column" id="col-done">
+            <h3>🟢 Готово</h3>
+        </div>
+    </div>
+
+    <div id="taskModal" style="display: none; position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0,0,0,0.8); z-index: 1000; justify-content: center; align-items: center;">
+        <div style="background: var(--bg-color); padding: 20px; border-radius: 12px; border: 1px solid var(--accent); width: 90%; max-width: 400px; display: flex; flex-direction: column; gap: 15px;">
+            <h3 style="color: white; font-weight: 500;">Новая задача</h3>
+            <textarea id="taskPrompt" rows="4" style="width: 100%; background: var(--column-bg); color: white; border: 1px solid var(--card-border); border-radius: 8px; padding: 10px; font-family: inherit; resize: none;" placeholder="Опишите задачу для AI..."></textarea>
+            <div style="display: flex; gap: 10px; justify-content: flex-end;">
+                <button onclick="closeModal()" style="background: transparent; color: var(--text-muted); border: none; padding: 8px 16px; cursor: pointer; border-radius: 8px;">Отмена</button>
+                <button onclick="submitTask()" class="add-task" style="box-shadow: none;">Создать</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        async function fetchTasks() {
+            try {
+                const response = await fetch('/tasks/all');
+                const data = await response.json();
+                renderTasks(data.tasks);
+            } catch (e) {
+                console.error("Ошибка соединения:", e);
+            }
+        }
+
+        function renderTasks(tasks) {
+            document.getElementById('col-todo').innerHTML = '<h3>🔴 В очереди</h3>';
+            document.getElementById('col-inprogress').innerHTML = '<h3>🟡 В процессе</h3>';
+            document.getElementById('col-done').innerHTML = '<h3>🟢 Готово</h3>';
+
+            if(!tasks) return;
+
+            tasks.forEach(task => {
+                const el = document.createElement('div');
+                el.className = 'task';
+                el.innerHTML = `<div class="task-title">Задача #${task.id.substring(0,6)}</div>
+                                <div class="task-meta">${task.prompt}</div>`;
+                
+                if(task.status === 'queued') document.getElementById('col-todo').appendChild(el);
+                else if(task.status === 'processing') document.getElementById('col-inprogress').appendChild(el);
+                else document.getElementById('col-done').appendChild(el);
+            });
+        }
+
+        function createTask() {
+            document.getElementById('taskModal').style.display = 'flex';
+            document.getElementById('taskPrompt').focus();
+        }
+
+        function closeModal() {
+            document.getElementById('taskModal').style.display = 'none';
+            document.getElementById('taskPrompt').value = '';
+        }
+
+        async function submitTask() {
+            const prompt = document.getElementById('taskPrompt').value.trim();
+            if(!prompt) return;
+            
+            closeModal();
+            try {
+                await fetch('/tasks', {
+                    method: 'POST',
+                    headers: {'Content-Type': 'application/json'},
+                    body: JSON.stringify({prompt: prompt})
+                });
+                fetchTasks();
+            } catch(e) {
+                alert("Ошибка при создании задачи. Убедитесь, что сервер работает.");
+            }
+        }
+
+        setInterval(fetchTasks, 5000);
+        fetchTasks();
+    </script>
+</body>
+</html>

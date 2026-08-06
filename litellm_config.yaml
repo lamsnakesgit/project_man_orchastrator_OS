@@ -1,0 +1,39 @@
+model_list:
+  - model_name: claude-3.5-opus
+    litellm_params:
+      model: anthropic/claude-3-5-opus-20241022
+      api_key: "os.environ/ANTHROPIC_API_KEY"
+  - model_name: gemini-3.1-pro
+    litellm_params:
+      model: gemini/gemini-3.1-pro
+      api_key: "os.environ/GEMINI_API_KEY"
+  - model_name: gemini-3.5
+    litellm_params:
+      model: gemini/gemini-3.5
+      api_key: "os.environ/GEMINI_API_KEY"
+  - model_name: gemini-3.6
+    litellm_params:
+      model: gemini/gemini-3.6
+      api_key: "os.environ/GEMINI_API_KEY"
+  - model_name: antigravity-pro
+    litellm_params:
+      model: vertex_ai/gemini-1.5-pro
+      vertex_project: "os.environ/VERTEX_PROJECT_ID"
+      vertex_location: "us-central1"
+  - model_name: antigravity-pro-backup
+    litellm_params:
+      model: gemini/gemini-1.5-pro
+      api_key: "os.environ/GEMINI_API_KEY"
+  - model_name: free-fast
+    litellm_params:
+      model: gemini/gemini-1.5-flash
+      api_key: "os.environ/GEMINI_API_KEY"
+
+router_settings:
+  routing_strategy: usage-based-routing
+  fallbacks:
+    - {"antigravity-pro": ["antigravity-pro-backup", "free-fast"]}
+    - {"claude-3.5-opus": ["antigravity-pro", "free-fast"]}
+    - {"gemini-3.1-pro": ["antigravity-pro", "free-fast"]}
+    - {"gemini-3.5": ["antigravity-pro", "free-fast"]}
+    - {"gemini-3.6": ["antigravity-pro", "free-fast"]}

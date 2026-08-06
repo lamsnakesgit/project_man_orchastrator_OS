@@ -1,0 +1,7 @@
+.venv/
+__pycache__/
+*.pyc
+.worktrees/
+node_modules/
+.env
+vertex_sa.json
