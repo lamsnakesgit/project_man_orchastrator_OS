@@ -13,6 +13,35 @@ services:
     command: redis-server --appendonly yes
     restart: always
 
+  # Kaneo — self-hosted Kanban трекер (как у borodutch в статье про Voicy)
+  # Source: https://github.com/usekaneo/kaneo
+  kaneo-postgres:
+    image: postgres:16-alpine
+    container_name: kaneo-postgres
+    environment:
+      POSTGRES_USER: kaneo
+      POSTGRES_PASSWORD: ${KANEO_DB_PASSWORD:-kaneo-secret}
+      POSTGRES_DB: kaneo
+    volumes:
+      - kaneo_postgres_data:/var/lib/postgresql/data
+    restart: always
+
+  kaneo:
+    image: ghcr.io/usekaneo/kaneo:latest
+    container_name: kaneo
+    depends_on:
+      - kaneo-postgres
+    ports:
+      - "5173:3000"
+    environment:
+      DATABASE_URL: postgresql://kaneo:${KANEO_DB_PASSWORD:-kaneo-secret}@kaneo-postgres:5432/kaneo
+      KANEO_CLIENT_URL: http://localhost:5173
+      KANEO_PUBLIC_URL: http://localhost:5173
+      AUTH_SECRET: ${KANEO_AUTH_SECRET:-change-me-in-production}
+      # SMTP опционально для e-mail уведомлений
+      # SMTP_URL: ${KANEO_SMTP_URL:-}
+    restart: always
+
   litellm:
     image: ghcr.io/berriai/litellm:main-latest
     container_name: orchestrator-litellm
@@ -31,3 +60,4 @@ services:
 
 volumes:
   redis_data:
+  kaneo_postgres_data:

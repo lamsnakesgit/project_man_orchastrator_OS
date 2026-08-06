@@ -105,21 +105,24 @@ class Notifier:
         default_chat_id = os.getenv("MAIN_TELEGRAM_CHAT_ID", "888005446")
         target_chat_id = task_data.get("chat_id") or default_chat_id
 
-        if source == "telegram" or target_chat_id:
-            try:
-                chat_id_int = int(target_chat_id)
-                return self.send_telegram_notification(chat_id_int, msg, pr_url=pr_url)
-            except (ValueError, TypeError):
-                logger.error(f"Недопустимый chat_id '{target_chat_id}' для Telegram уведомления.")
-                return False
-        elif source == "asana":
+        # Asana-задачи маршрутизируются в Asana (task_gid = chat_id), а не в Telegram.
+        if source == "asana":
             task_gid = str(task_data.get("task_gid") or task_data.get("chat_id") or task_data.get("id", ""))
             if task_gid:
                 return self.send_asana_notification(task_gid, msg)
             else:
                 logger.warning("task_gid отсутствует для Asana уведомления.")
                 return False
+
+        if source == "telegram":
+            try:
+                chat_id_int = int(target_chat_id)
+                return self.send_telegram_notification(chat_id_int, msg, pr_url=pr_url)
+            except (ValueError, TypeError):
+                logger.error(f"Недопустимый chat_id '{target_chat_id}' для Telegram уведомления.")
+                return False
         else:
+            # Для ui-источника отправка в Telegram — необязательная копия, не критичная.
             logger.info(f"Уведомление для источника '{source}': {msg}")
             if default_chat_id:
                 try:

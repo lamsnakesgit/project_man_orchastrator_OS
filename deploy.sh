@@ -8,8 +8,7 @@ VPS_USER="root"
 
 echo "Deploying AI Orchestrator to VPS ($VPS_IP)..."
 
-# 1. Sync files to VPS
-sshpass -p 'g2AjLzx1drew4ozpArNe' rsync -avz -e "ssh -o StrictHostKeyChecking=no" --exclude '.venv' --exclude '__pycache__' ./ $VPS_USER@$VPS_IP:/opt/ai_orchestrator/
+sshpass -p 'g2AjLzx1drew4ozpArNe' rsync -avz -e "ssh -o StrictHostKeyChecking=no" --exclude '.venv' --exclude '__pycache__' --exclude '.git' --exclude '.worktrees' ./ $VPS_USER@$VPS_IP:/opt/ai_orchestrator/
 
 # 2. Run deployment commands on VPS
 sshpass -p 'g2AjLzx1drew4ozpArNe' ssh -o StrictHostKeyChecking=no $VPS_USER@$VPS_IP << 'EOF'

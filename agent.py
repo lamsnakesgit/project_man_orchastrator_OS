@@ -12,6 +12,12 @@ from project_profiles import get_project_profile
 
 logger = logging.getLogger(__name__)
 
+# Режим выполнения: vertex=True → Google Cloud (Gemini Enterprise Agent Platform),
+# иначе локальный режим через Gemini Developer API.
+USE_VERTEX = os.getenv("ANTIGRAVITY_USE_VERTEX", "true").lower() in ("1", "true", "yes")
+GOOGLE_CLOUD_PROJECT = os.getenv("GOOGLE_CLOUD_PROJECT")
+GOOGLE_CLOUD_LOCATION = os.getenv("GOOGLE_CLOUD_LOCATION", "us-central1")
+ANTIGRAVITY_API_KEY = os.getenv("ANTIGRAVITY_API_KEY")
 
 def _get_dir_files(directory: str) -> set:
     """
@@ -75,13 +81,24 @@ async def run_agent_task(
 
         agent_output = ""
         try:
-            config = LocalAgentConfig(
-                system_instructions=profile.system_instructions,
-                capabilities=capabilities,
-                model=selected_model,
-                policies=[policy.allow_all()],
-                api_key=api_key
-            )
+            # Конфигурация агента.
+            # - vertex=True: аутентификация через ADC (gcloud auth application-default login),
+            #   api_key не нужен.
+            # - vertex=False: локальный режим, api_key из env ANTIGRAVITY_API_KEY.
+            config_kwargs: Dict[str, Any] = {
+                "system_instructions": profile.system_instructions,
+                "capabilities": capabilities,
+                "model": selected_model,
+                "policies": [policy.allow_all()],
+            }
+            if USE_VERTEX:
+                config_kwargs["vertex"] = True
+                config_kwargs["project"] = GOOGLE_CLOUD_PROJECT
+                config_kwargs["location"] = GOOGLE_CLOUD_LOCATION
+            elif ANTIGRAVITY_API_KEY:
+                config_kwargs["api_key"] = ANTIGRAVITY_API_KEY
+
+            config = LocalAgentConfig(**config_kwargs)
             async with Agent(config) as agent:
                 logger.info(f"Агент исполняет промпт: {prompt[:100]}...")
                 response = await agent.chat(prompt)

@@ -12,7 +12,7 @@ class TaskStore:
     """
     Управление задачами с использованием Redis и со встроенным (in-memory) потокобезопасным резервным хранилищем.
     """
-    VALID_STATUSES = {"queued", "in_progress", "completed", "failed"}
+    VALID_STATUSES = {"queued", "in_progress", "review", "rework", "completed", "failed"}
 
     def __init__(
         self,

@@ -5,3 +5,7 @@ __pycache__/
 node_modules/
 .env
 vertex_sa.json
+
+# Сторонние клоны (не наш код)
+symphony/
+forge-mobile-dev-station/
