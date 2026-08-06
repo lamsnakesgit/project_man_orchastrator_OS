@@ -1,4 +1,5 @@
 #!/bin/bash
+export PATH="/usr/local/bin:/usr/bin:/bin:/usr/sbin:/sbin:$PATH"
 # Авто-коммит изменений проекта каждые 5 минут.
 # Добавлено в cron: */5 * * * * /Users/higherpower/Desktop/1_Active_Projects/2\ Ai_agents/1_project_man_orchastrator_OS_/scripts/auto_commit.sh
 
